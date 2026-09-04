@@ -1,0 +1,19 @@
+hub_connection_status:
+  name: "Hub Connection Status"
+  icon: mdi:connection
+  options:
+    - offline
+    - online
+    - testing
+    - error
+  initial: "offline"
+
+hub_alert_level:
+  name: "Hub Alert Level"
+  icon: mdi:bell
+  options:
+    - none
+    - info
+    - warning
+    - critical
+  initial: "none"

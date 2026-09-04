@@ -88,16 +88,28 @@ group: !include groups.yaml
 
 ### Includes ###
 alert: !include_dir_merge_named alerts/
-automation: !include automations.yaml
+automation:
+  - !include automations.yaml
+  - !include ha_hub_automations.yaml
 script: !include scripts.yaml
-sensor: !include_dir_merge_list sensors
+sensor:
+  - !include_dir_merge_list sensors
+  - !include ha_hub_sensors.yaml
 binary_sensor: !include_dir_merge_list binary_sensors
+template: !include ha_hub_devices.yaml
 # light: !include lights.yaml
 switch: !include switches.yaml
 scene: !include scenes.yaml
-input_select: !include input_select.yaml
+input_select:
+  - !include input_select.yaml
+  - !include ha_hub_inputs/input_select.yaml
 input_boolean: !include input_boolean.yaml
-input_datetime: !include input_datetime.yaml
+input_datetime:
+  - !include input_datetime.yaml
+  - !include ha_hub_inputs/input_datetime.yaml
+input_text: !include ha_hub_inputs/input_text.yaml
+input_number: !include ha_hub_inputs/input_number.yaml
+counter: !include ha_hub_inputs/counter.yaml
 zone: !include zones.yaml
 
 shell_command:

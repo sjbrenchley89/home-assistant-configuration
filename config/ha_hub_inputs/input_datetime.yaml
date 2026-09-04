@@ -1,0 +1,11 @@
+hub_last_heartbeat:
+  name: "Hub Last Heartbeat"
+  icon: mdi:pulse
+  has_date: true
+  has_time: true
+
+hub_start_time:
+  name: "Hub Start Time"
+  icon: mdi:clock-start
+  has_date: true
+  has_time: true

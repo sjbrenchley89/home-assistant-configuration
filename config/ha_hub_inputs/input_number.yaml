@@ -1,0 +1,8 @@
+hub_response_time:
+  name: "Hub Response Time"
+  icon: mdi:speedometer
+  unit_of_measurement: "ms"
+  min: 0
+  max: 30000
+  step: 1
+  initial: 0

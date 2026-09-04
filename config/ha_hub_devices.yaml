@@ -1,0 +1,70 @@
+# Home Assistant Hub Connection - Test Devices & Templates
+# This file contains template sensors and mock devices for testing
+# and demonstrating Hub connection functionality
+
+template:
+  # Hub Connection Status Sensors
+  - sensor:
+      - name: "Hub Connection Status"
+        unique_id: hub_connection_status
+        icon: mdi:connection
+        state: >
+          {% if states('binary_sensor.hub_connection_online') == 'on' %}
+            Connected
+          {% else %}
+            Disconnected
+          {% endif %}
+
+      - name: "Hub Last Heartbeat"
+        unique_id: hub_last_heartbeat
+        icon: mdi:pulse
+        device_class: timestamp
+        unit_of_measurement: ""
+        state: >
+          {% if state_attr('input_datetime.hub_last_heartbeat', 'timestamp') %}
+            {{ state_attr('input_datetime.hub_last_heartbeat', 'timestamp') | timestamp_custom('%Y-%m-%d %H:%M:%S') }}
+          {% else %}
+            Unknown
+          {% endif %}
+
+      - name: "Hub Response Time"
+        unique_id: hub_response_time
+        icon: mdi:speedometer
+        unit_of_measurement: "ms"
+        state: >
+          {% if states('input_number.hub_response_time') != 'unavailable' %}
+            {{ states('input_number.hub_response_time') | float(0) | round(1) }}
+          {% else %}
+            0
+          {% endif %}
+
+  # Hub Health Binary Sensors
+  - binary_sensor:
+      - name: "Hub Connection Online"
+        unique_id: hub_connection_online
+        icon: mdi:connection
+        device_class: connectivity
+        state: >
+          {% if states('input_select.hub_connection_status') == 'online' %}
+            on
+          {% else %}
+            off
+          {% endif %}
+
+      - name: "Hub Response Healthy"
+        unique_id: hub_response_healthy
+        icon: mdi:heart-pulse
+        device_class: safety
+        state: >
+          {% set response_time = states('input_number.hub_response_time') | float(0) %}
+          {{ 'on' if response_time > 0 and response_time < 5000 else 'off' }}
+
+      - name: "Hub Heartbeat Stale"
+        unique_id: hub_heartbeat_stale
+        icon: mdi:clock-alert
+        device_class: problem
+        state: >
+          {% set last_heartbeat = state_attr('input_datetime.hub_last_heartbeat', 'timestamp') | float(0) %}
+          {% set now = now().timestamp() %}
+          {% set time_diff = (now - last_heartbeat) / 60 %}
+          {{ 'on' if time_diff > 10 else 'off' }}
