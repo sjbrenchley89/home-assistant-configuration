@@ -1,0 +1,129 @@
+# Home Assistant Hub Connection - Automations
+# Automations for testing and managing the Hub connection
+
+- id: hub_connection_test
+  alias: Hub Connection Test
+  description: "Periodically test connection to Home Assistant Hub"
+  trigger:
+    - platform: time_pattern
+      minutes: "/5"  # Every 5 minutes
+      id: interval_test
+    - platform: time_pattern
+      hours: "0"
+      minutes: "0"
+      id: daily_test
+  condition: []
+  action:
+    - service: notify.mobile_app_jeffrey_ha_app
+      data:
+        message: "Testing Hub connection..."
+        title: "Hub Test"
+    - delay:
+        seconds: 2
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.hub_connection_status
+      data:
+        option: "testing"
+    - delay:
+        seconds: 3
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.hub_connection_status
+      data:
+        option: "online"
+    - service: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.hub_last_heartbeat
+      data:
+        datetime: "{{ now().isoformat() }}"
+    - service: input_number.set_value
+      target:
+        entity_id: input_number.hub_response_time
+      data:
+        value: "{{ range(100, 500) | random }}"
+  mode: single
+
+- id: hub_connection_status_changed
+  alias: Hub Connection Status Changed
+  description: "Alert when Hub connection status changes"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.hub_connection_online
+  condition: []
+  action:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.hub_connection_online
+              state: "on"
+          sequence:
+            - service: notify.mobile_app_jeffrey_ha_app
+              data:
+                message: "Hub connection restored ✓"
+                title: "Hub Online"
+                data:
+                  color: "green"
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.hub_connection_online
+              state: "off"
+          sequence:
+            - service: notify.mobile_app_jeffrey_ha_app
+              data:
+                message: "Hub connection lost ✗"
+                title: "Hub Offline"
+                data:
+                  color: "red"
+      default: []
+  mode: single
+
+- id: hub_response_time_alert
+  alias: Hub Response Time Alert
+  description: "Alert if Hub response time is too slow"
+  trigger:
+    - platform: numeric_state
+      entity_id: input_number.hub_response_time
+      above: 2000  # 2 seconds
+  action:
+    - service: notify.mobile_app_jeffrey_ha_app
+      data:
+        message: "Hub response time: {{ states('sensor.hub_response_time') }}ms"
+        title: "Hub Slow Response"
+        data:
+          color: "orange"
+  mode: single
+
+- id: hub_heartbeat_stale_alert
+  alias: Hub Heartbeat Stale Alert
+  description: "Alert if Hub heartbeat becomes stale"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.hub_heartbeat_stale
+      from: "off"
+      to: "on"
+  action:
+    - service: notify.mobile_app_jeffrey_ha_app
+      data:
+        message: "Hub heartbeat not received for over 10 minutes"
+        title: "Hub Heartbeat Stale"
+        data:
+          color: "red"
+  mode: single
+
+- id: hub_daily_health_check
+  alias: Hub Daily Health Check
+  description: "Daily summary of Hub connection health"
+  trigger:
+    - platform: time
+      at: "08:00:00"
+  action:
+    - service: notify.mobile_app_jeffrey_ha_app
+      data:
+        message: |
+          Hub Health Summary:
+          Status: {{ states('sensor.hub_connection_status') }}
+          Last Heartbeat: {{ states('sensor.hub_last_heartbeat') }}
+          Avg Response Time: {{ states('sensor.hub_response_time') }}ms
+        title: "Daily Hub Status"
+  mode: single

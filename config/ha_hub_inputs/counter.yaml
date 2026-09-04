@@ -1,0 +1,9 @@
+hub_test_count:
+  name: "Hub Test Count"
+  icon: mdi:counter
+  initial: 0
+
+hub_test_failures:
+  name: "Hub Test Failures"
+  icon: mdi:alert-circle
+  initial: 0

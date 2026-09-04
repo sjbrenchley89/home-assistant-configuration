@@ -1,0 +1,9 @@
+hub_api_endpoint:
+  name: "Hub API Endpoint"
+  icon: mdi:api
+  initial: "http://192.168.1.121:8123/api"
+
+hub_status_description:
+  name: "Hub Status Description"
+  icon: mdi:information
+  initial: "Ready to test"

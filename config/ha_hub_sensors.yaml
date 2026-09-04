@@ -1,0 +1,68 @@
+# Home Assistant Hub Connection - REST API Sensors
+# These sensors monitor the Hub connection status via REST API calls
+
+- platform: rest
+  resource: !secret ha_hub_url
+  name: "Hub API Status"
+  unique_id: hub_api_status
+  scan_interval: 300  # Check every 5 minutes
+  force_update: false
+  json_attributes:
+    - version
+    - timezone
+  value_template: >
+    {% if value_json.result == 'ok' %}
+      online
+    {% else %}
+      offline
+    {% endif %}
+  headers:
+    Authorization: !secret ha_hub_token_header
+  ssl_verify: false
+  timeout: 10
+
+- platform: rest
+  resource: "{{ states('input_text.hub_api_endpoint') }}/states"
+  name: "Hub API States Count"
+  unique_id: hub_api_states_count
+  scan_interval: 600  # Check every 10 minutes
+  unit_of_measurement: "entities"
+  value_template: "{{ value_json | length }}"
+  headers:
+    Authorization: !secret ha_hub_token_header
+  ssl_verify: false
+  timeout: 10
+
+- platform: template
+  sensors:
+    hub_connection_uptime:
+      friendly_name: "Hub Connection Uptime"
+      unique_id: hub_connection_uptime
+      unit_of_measurement: "minutes"
+      value_template: >
+        {% if states('input_datetime.hub_start_time') != 'unavailable' %}
+          {% set start = state_attr('input_datetime.hub_start_time', 'timestamp') %}
+          {% set now = now().timestamp() %}
+          {{ ((now - start) / 60) | int }}
+        {% else %}
+          0
+        {% endif %}
+
+    hub_test_count:
+      friendly_name: "Hub Connection Tests Run"
+      unique_id: hub_test_count
+      unit_of_measurement: "tests"
+      value_template: "{{ states('counter.hub_test_count') | default(0) }}"
+
+    hub_connection_reliability:
+      friendly_name: "Hub Connection Reliability"
+      unique_id: hub_connection_reliability
+      unit_of_measurement: "%"
+      value_template: >
+        {% set total = states('counter.hub_test_count') | int(0) %}
+        {% set failures = states('counter.hub_test_failures') | int(0) %}
+        {% if total > 0 %}
+          {{ ((total - failures) / total * 100) | round(1) }}
+        {% else %}
+          0
+        {% endif %}
