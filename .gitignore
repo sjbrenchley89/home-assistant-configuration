@@ -60,4 +60,5 @@ transporter.py
 **ios.conf
 **pyozw.sqlite
 **ipchange.yaml
-**production_auth.json
+**production_auth.json.env
+.env
